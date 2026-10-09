@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "skill-print"
-version = "0.1.0"
+version = "0.1.1"
 description = "Print skill for BeerCanLabs Agent Factory: send documents, text, and URLs to the home office printer via the Gatekeeper print route."
 readme = "README.md"
 requires-python = ">=3.10"

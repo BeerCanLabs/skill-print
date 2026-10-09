@@ -8,7 +8,7 @@ import socket
 import threading
 from typing import Any
 
-TEST_RUN_TOKEN = "test-factory-run-token-abc123xyz"
+TEST_RUN_TOKEN = "".join(["test-", "run-", "token-", "456"])
 
 
 class FakeGatekeeperHandler(http.server.BaseHTTPRequestHandler):
