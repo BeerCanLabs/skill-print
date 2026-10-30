@@ -1,10 +1,12 @@
-# Skill manifest (DESIGN_AUTHORITY §6.14 SK1, SK2), conforming to agent-factory
-# packages/contract/src/skill.ts (docs/SKILLS.md).
+spec: 1
 id: print
-version: 0.1.1
+version: 1.0.0
 name: Print
-description: Print documents, plain text, and URLs to the home office printer, query print queue, and check printer status.
+description: Print documents, staged files, plain text, and URLs to the home office printer, query print queue, and check printer status.
 language: python
 entry: print_skill
 requires:
   routes: [print]
+smoke:
+  action: check-printer-health
+  input: {}

@@ -119,6 +119,31 @@ class TestPrintSkill(unittest.TestCase):
             cancel = cancel_job("job-0001")
             self.assertTrue(cancel.get("ok"))
 
+    def test_runtime_tools_and_smoke_and_staged_file(self) -> None:
+        import json
+        import tempfile
+        from pathlib import Path
+        from print_skill import tools
+
+        with tempfile.TemporaryDirectory() as tmp:
+            env = {
+                "PRINT_BASE_URL": self.fake.base_url,
+                "FACTORY_RUN_TOKEN": TEST_RUN_TOKEN,
+                "ATTACHMENT_STAGING_DIR": tmp,
+            }
+            with patch.dict("os.environ", env):
+                by_name = {t["name"]: t for t in tools()}
+                smoke_out = json.loads(by_name["check_printer_health"]["handler"]({}, {"smoke": True}))
+                self.assertTrue(smoke_out.get("ok"))
+
+                denied = json.loads(by_name["print_file_path"]["handler"]({"local_path": "/etc/hosts"}, {}))
+                self.assertFalse(denied.get("ok"))
+
+                staged = Path(tmp) / "doc.pdf"
+                staged.write_bytes(b"%PDF-1.4 test")
+                printed = json.loads(by_name["print_file_path"]["handler"]({"local_path": str(staged)}, {}))
+                self.assertTrue(printed.get("ok"))
+
 
 if __name__ == "__main__":
     unittest.main()
