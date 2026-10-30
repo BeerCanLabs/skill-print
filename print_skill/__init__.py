@@ -24,6 +24,7 @@ from print_skill.client import (
     PrintClient,
     PrintError,
 )
+from print_skill.tools import TOOL_NAMES, handle_tool_call, tool_definitions, tools
 
 __all__ = [
     "PrintClient",
@@ -35,13 +36,17 @@ __all__ = [
     "list_printers",
     "list_jobs",
     "cancel_job",
+    "TOOL_NAMES",
+    "tool_definitions",
+    "handle_tool_call",
+    "tools",
     "DEFAULT_TIMEOUT_SECONDS",
     "MAX_COPIES",
     "MAX_PAYLOAD_BYTES",
     "__version__",
 ]
 
-__version__ = "0.1.1"
+__version__ = "1.0.0"
 
 
 def _default_client() -> PrintClient:

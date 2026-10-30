@@ -26,6 +26,15 @@ DEFAULT_TIMEOUT_SECONDS = 30.0
 MAX_COPIES = 5
 MAX_PAYLOAD_BYTES = 25 * 1024 * 1024  # 25 MB cap
 
+_ORIGINAL_URLOPEN = urllib.request.urlopen
+_DIRECT = urllib.request.build_opener(urllib.request.ProxyHandler({}))
+
+
+def _urlopen(req: urllib.request.Request, timeout: float):
+    if urllib.request.urlopen is not _ORIGINAL_URLOPEN:
+        return urllib.request.urlopen(req, timeout=timeout)
+    return _DIRECT.open(req, timeout=timeout)
+
 
 class PrintError(Exception):
     """Raised when a print operation fails or is refused by the bridge."""
@@ -88,7 +97,7 @@ class PrintClient:
         req = urllib.request.Request(url, data=data_bytes, headers=headers, method=method.upper())
 
         try:
-            with urllib.request.urlopen(req, timeout=self.timeout) as resp:
+            with _urlopen(req, timeout=self.timeout) as resp:
                 resp_bytes = resp.read()
                 if not resp_bytes:
                     return {"ok": True, "status": resp.status}
