@@ -162,12 +162,27 @@ def handle_tool_call(name: str, args: dict[str, Any]) -> dict[str, Any]:
     return {"ok": False, "error": "UnknownTool", "message": f"Unknown tool: {name}"}
 
 
+def _dry_run_check(name: str) -> dict[str, Any]:
+    client = PrintClient()
+    configured = any(os.environ.get(k) for k in ("PRINT_BASE_URL", "FACTORY_GATEKEEPER_EGRESS_URL", "GATEKEEPER_EGRESS_URL"))
+    return {
+        "ok": configured,
+        "dryRun": True,
+        "tool": name,
+        "routeConfigured": configured,
+        "runTokenPresent": bool(client.run_token),
+        **({} if configured else {"error": "RouteNotConfigured", "message": "print route base URL is not configured"}),
+    }
+
+
 def _make_handler(name: str):
     def handler(arguments: dict[str, Any] | None = None, context: dict[str, Any] | None = None) -> str:
         ctx = context or {}
         args = arguments or {}
-        if ctx.get("dryRun") is True and name in ("print_text", "print_file_path", "print_url", "cancel_print_job"):
-            return json.dumps({"ok": True, "dryRun": True, "tool": name})
+        if ctx.get("dryRun") is True:
+            # A dry run never calls the print service: an activation check must not print at the house or depend on
+            # the printer being reachable. It confirms the skill loaded and the print route is configured.
+            return json.dumps(_dry_run_check(name))
         res = handle_tool_call(name, args)
         if ctx.get("smoke") is True and not res.get("ok"):
             return f"error: {res.get('error')}: {res.get('message') or res}"

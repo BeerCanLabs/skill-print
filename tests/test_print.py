@@ -144,6 +144,35 @@ class TestPrintSkill(unittest.TestCase):
                 printed = json.loads(by_name["print_file_path"]["handler"]({"local_path": str(staged)}, {}))
                 self.assertTrue(printed.get("ok"))
 
+    def test_dry_run_smoke_never_calls_the_print_service(self) -> None:
+        import json
+        from print_skill import tools
+
+        env = {"PRINT_BASE_URL": self.fake.base_url, "FACTORY_RUN_TOKEN": TEST_RUN_TOKEN}
+        with patch.dict("os.environ", env):
+            by_name = {t["name"]: t for t in tools()}
+            before = len(self.fake.requests)
+            for name in by_name:
+                out = json.loads(by_name[name]["handler"]({"text": "should not print"}, {"smoke": True, "dryRun": True}))
+                self.assertTrue(out.get("ok"), out)
+                self.assertTrue(out.get("dryRun"))
+                self.assertTrue(out.get("routeConfigured"))
+            self.assertEqual(len(self.fake.requests), before, "dry run must not reach the print service")
+
+    def test_dry_run_reports_missing_route(self) -> None:
+        import json
+        from print_skill import tools
+
+        with patch.dict("os.environ", {}, clear=True):
+            by_name = {t["name"]: t for t in tools()}
+            out = by_name["check_printer_health"]["handler"]({}, {"smoke": True, "dryRun": True})
+            self.assertFalse(json.loads(out).get("ok"))
+
+    def test_manifest_smoke_is_a_dry_run(self) -> None:
+        from pathlib import Path
+        text = (Path(__file__).resolve().parent.parent / "skill.yaml").read_text()
+        self.assertIn("dryRun: true", text.split("smoke:", 1)[1])
+
 
 if __name__ == "__main__":
     unittest.main()
