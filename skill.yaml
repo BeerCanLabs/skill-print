@@ -1,6 +1,6 @@
 spec: 1
 id: print
-version: 1.0.0
+version: 1.0.1
 name: Print
 description: Print documents, staged files, plain text, and URLs to the home office printer, query print queue, and check printer status.
 language: python
@@ -10,3 +10,4 @@ requires:
 smoke:
   action: check-printer-health
   input: {}
+  dryRun: true
